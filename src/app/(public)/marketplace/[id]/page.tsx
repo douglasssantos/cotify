@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { mockQuotas } from "@/data/mock-quotas";
@@ -10,6 +10,7 @@ import {
   getStatusColor,
   getStatusLabel,
 } from "@/lib/utils";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 
 const tabCategories = [
   "Todas as Categorias",
@@ -21,11 +22,28 @@ const tabCategories = [
   "Canceladas",
 ];
 
+const PAYMENT_OPTIONS = [
+  { value: "escrow", label: "À vista via Escrow" },
+  { value: "parcelado", label: "Parcelado" },
+  { value: "entrada_parcelas", label: "Entrada + Parcelas" },
+];
+
 export default function QuotaDetailPage() {
   const params = useParams();
   const quota = mockQuotas.find((q) => q.id === params.id);
   const [shareToggle, setShareToggle] = useState(false);
   const [saveToggle, setSaveToggle] = useState(false);
+  const proposalSectionRef = useRef<HTMLDivElement>(null);
+
+  // Form: Comprar esta cota / Fazer proposta
+  const [proposalValue, setProposalValue] = useState(0);
+  const [paymentMethod, setPaymentMethod] = useState(PAYMENT_OPTIONS[0].value);
+  const [message, setMessage] = useState("");
+  const [acceptTerms, setAcceptTerms] = useState(false);
+  const [acceptDocs, setAcceptDocs] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
+  const [formError, setFormError] = useState("");
 
   if (!quota) {
     return (
@@ -53,10 +71,44 @@ export default function QuotaDetailPage() {
     `${quota.totalInstallments} meses`,
   ];
 
+  const scrollToProposal = () => {
+    proposalSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  const handleProposalSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (proposalValue <= 0 || !Number.isFinite(proposalValue)) {
+      setFormError("Informe o valor da proposta.");
+      return;
+    }
+    if (!acceptTerms) {
+      setFormError("É necessário aceitar os termos de transferência.");
+      return;
+    }
+    if (!acceptDocs) {
+      setFormError("É necessário confirmar que possui a documentação em dia.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    // Simula envio (substituir por chamada à API quando existir backend)
+    setTimeout(() => {
+      setIsSubmitting(false);
+      setSubmitSuccess(true);
+      setProposalValue(0);
+      setPaymentMethod(PAYMENT_OPTIONS[0].value);
+      setMessage("");
+      setAcceptTerms(false);
+      setAcceptDocs(false);
+    }, 800);
+  };
+
   return (
     <>
       {/* TabSection1 */}
-      <section className="categories_list_section overflow-hidden">
+      {/* <section className="categories_list_section overflow-hidden">
         <div className="container">
           <div className="row">
             <div className="col-lg-12">
@@ -77,7 +129,7 @@ export default function QuotaDetailPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Breadcumb10 */}
       <section className="breadcumb-section">
@@ -361,88 +413,132 @@ export default function QuotaDetailPage() {
                     <hr className="opacity-100 mb60" />
 
                     {/* Send Proposal Form */}
-                    <div className="bsp_reveiw_wrt mt25">
+                    <div
+                      id="fazer-proposta"
+                      ref={proposalSectionRef}
+                      className="bsp_reveiw_wrt mt25"
+                    >
                       <h4>Fazer uma Proposta</h4>
-                      <form className="comments_form mt30 mb30-md">
-                        <div className="row">
-                          <div className="col-md-6">
-                            <div className="mb20">
-                              <label className="fw500 ff-heading dark-color mb-2">
-                                Valor da Proposta
-                              </label>
-                              <input
-                                type="text"
-                                className="form-control"
-                                placeholder={formatCurrency(
-                                  quota.listingPrice || quota.paidAmount
-                                )}
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-6">
-                            <div className="mb20">
-                              <label className="fw500 ff-heading dark-color mb-2">
-                                Forma de Pagamento
-                              </label>
-                              <select className="form-control form-select">
-                                <option>À vista via Escrow</option>
-                                <option>Parcelado</option>
-                                <option>Entrada + Parcelas</option>
-                              </select>
-                            </div>
-                          </div>
-                          <div className="col-md-12">
-                            <div className="mb-4">
-                              <label className="fw500 fz16 ff-heading dark-color mb-2">
-                                Mensagem ao Vendedor
-                              </label>
-                              <textarea
-                                className="pt15"
-                                rows={6}
-                                placeholder="Descreva sua proposta, condições desejadas e qualquer informação adicional relevante..."
-                              />
-                            </div>
-                          </div>
-                          <div className="col-md-12">
-                            <div className="extra-service-tab mb40 mt30">
-                              <nav>
-                                <div className="nav flex-column nav-tabs">
-                                  <button className="nav-link" type="button">
-                                    <label className="custom_checkbox fw500 text-start">
-                                      Aceito os termos de transferência
-                                      <span className="text text-bottom">
-                                        Concordo com os termos e condições para
-                                        transferência de cota
-                                      </span>
-                                      <input type="checkbox" />
-                                      <span className="checkmark" />
-                                    </label>
-                                  </button>
-                                  <button className="nav-link" type="button">
-                                    <label className="custom_checkbox fw500 text-start">
-                                      Possuo documentação em dia
-                                      <span className="text text-bottom">
-                                        Confirmo que possuo toda documentação
-                                        necessária para a transferência
-                                      </span>
-                                      <input type="checkbox" />
-                                      <span className="checkmark" />
-                                    </label>
-                                  </button>
-                                </div>
-                              </nav>
-                            </div>
-                          </div>
-                          <div className="col-md-12">
-                            <div className="d-grid">
-                              <a className="ud-btn btn-thm" style={{ cursor: "pointer" }}>
-                                Enviar Proposta
-                                <i className="fal fa-arrow-right-long" />
-                              </a>
-                            </div>
-                          </div>
+
+                      {submitSuccess && (
+                        <div className="alert alert-success mb30" role="alert">
+                          <strong>Proposta enviada com sucesso!</strong>
+                          <p className="mb-0 mt-2">
+                            Nossa equipe entrará em contato em breve para dar continuidade à compra desta cota.
+                          </p>
+                          <button
+                            type="button"
+                            className="ud-btn btn-thm btn-sm mt20"
+                            onClick={() => setSubmitSuccess(false)}
+                          >
+                            Enviar outra proposta
+                          </button>
                         </div>
-                      </form>
+                      )}
+
+                      {!submitSuccess && (
+                        <form className="comments_form mt30 mb30-md" onSubmit={handleProposalSubmit}>
+                          {formError && (
+                            <div className="alert alert-danger mb20" role="alert">
+                              {formError}
+                            </div>
+                          )}
+                          <div className="row">
+                            <div className="col-md-6">
+                              <div className="mb20">
+                                <label className="fw500 ff-heading dark-color mb-2 d-block">
+                                  Valor da Proposta
+                                </label>
+                                <CurrencyInput
+                                  value={proposalValue}
+                                  onValueChange={setProposalValue}
+                                  placeholder={formatCurrency(quota.listingPrice ?? quota.paidAmount)}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-6">
+                              <div className="mb20">
+                                <label className="fw500 ff-heading dark-color mb-2">
+                                  Forma de Pagamento
+                                </label>
+                                <select
+                                  className="form-control form-select"
+                                  value={paymentMethod}
+                                  onChange={(e) => setPaymentMethod(e.target.value)}
+                                >
+                                  {PAYMENT_OPTIONS.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            </div>
+                            <div className="col-md-12">
+                              <div className="mb-4">
+                                <label className="fw500 fz16 ff-heading dark-color mb-2">
+                                  Mensagem ao Vendedor
+                                </label>
+                                <textarea
+                                  className="pt15 form-control"
+                                  rows={6}
+                                  placeholder="Descreva sua proposta, condições desejadas e qualquer informação adicional relevante..."
+                                  value={message}
+                                  onChange={(e) => setMessage(e.target.value)}
+                                />
+                              </div>
+                            </div>
+                            <div className="col-md-12">
+                              <div className="extra-service-tab mb40 mt30">
+                                <nav>
+                                  <div className="nav flex-column nav-tabs">
+                                    <div className="nav-link">
+                                      <label className="custom_checkbox fw500 text-start d-block" style={{ cursor: "pointer" }}>
+                                        Aceito os termos de transferência
+                                        <span className="text text-bottom d-block">
+                                          Concordo com os termos e condições para transferência de cota
+                                        </span>
+                                        <input
+                                          type="checkbox"
+                                          checked={acceptTerms}
+                                          onChange={(e) => setAcceptTerms(e.target.checked)}
+                                        />
+                                        <span className="checkmark" />
+                                      </label>
+                                    </div>
+                                    <div className="nav-link">
+                                      <label className="custom_checkbox fw500 text-start d-block" style={{ cursor: "pointer" }}>
+                                        Possuo documentação em dia
+                                        <span className="text text-bottom d-block">
+                                          Confirmo que possuo toda documentação necessária para a transferência
+                                        </span>
+                                        <input
+                                          type="checkbox"
+                                          checked={acceptDocs}
+                                          onChange={(e) => setAcceptDocs(e.target.checked)}
+                                        />
+                                        <span className="checkmark" />
+                                      </label>
+                                    </div>
+                                  </div>
+                                </nav>
+                              </div>
+                            </div>
+                            <div className="col-md-12">
+                              <div className="d-grid">
+                                <button
+                                  type="submit"
+                                  className="ud-btn btn-thm"
+                                  disabled={isSubmitting}
+                                >
+                                  {isSubmitting ? "Enviando..." : "Enviar Proposta"}
+                                  <i className="fal fa-arrow-right-long" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        </form>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -465,10 +561,14 @@ export default function QuotaDetailPage() {
                         Parcela: {formatCurrency(quota.installmentValue)}/mês
                       </p>
                       <div className="d-grid">
-                        <a className="ud-btn btn-thm" href="#fazer-proposta" style={{ cursor: "pointer" }}>
+                        <button
+                          type="button"
+                          className="ud-btn btn-thm"
+                          onClick={scrollToProposal}
+                        >
                           Comprar esta Cota
                           <i className="fal fa-arrow-right-long" />
-                        </a>
+                        </button>
                       </div>
                     </div>
 
@@ -524,7 +624,11 @@ export default function QuotaDetailPage() {
                       </div>
                       <div className="d-grid mt30">
                         <Link
-                          href="/marketplace"
+                          href={`/marketplace/administradoras/${quota.administradora
+                            .toLowerCase()
+                            .normalize("NFD")
+                            .replace(/[\u0300-\u036f]/g, "")
+                            .replace(/\s+/g, "-")}?tab=cotas`}
                           className="ud-btn btn-thm-border"
                         >
                           Ver Mais Cotas

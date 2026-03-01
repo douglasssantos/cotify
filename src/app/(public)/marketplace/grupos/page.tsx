@@ -68,7 +68,7 @@ export default function GroupsPage() {
   return (
     <>
       {/* TabSection1 */}
-      <section className="categories_list_section overflow-hidden">
+      {/* <section className="categories_list_section overflow-hidden">
         <div className="container">
           <div className="row">
             <div className="col-lg-12">
@@ -90,7 +90,7 @@ export default function GroupsPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Breadcumb3 */}
       <section className="breadcumb-section">

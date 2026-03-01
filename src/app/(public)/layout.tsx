@@ -7,10 +7,10 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   return (
-    <>
+    <div className="wrapper ovh">
       <Header />
       {children}
       <Footer />
-    </>
+    </div>
   );
 }

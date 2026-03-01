@@ -91,35 +91,7 @@ export default function RepassesPage() {
 
   return (
     <>
-      {/* Tabs */}
-      <section className="categories_list_section overflow-hidden">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="listings_category_nav_list_menu">
-                <ul className="mb0 d-flex ps-0">
-                  <li>
-                    <Link href="/marketplace">Cotas</Link>
-                  </li>
-                  <li>
-                    <Link href="/marketplace/grupos">Grupos</Link>
-                  </li>
-                  <li>
-                    <a className="active" style={{ cursor: "pointer" }}>Repasses</a>
-                  </li>
-                  <li>
-                    <Link href="/marketplace/assembleias">Assembleias</Link>
-                  </li>
-                  <li>
-                    <Link href="/simulador">Simulador</Link>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
+      
       {/* Breadcrumb */}
       <section className="breadcumb-section">
         <div className="container">
@@ -144,7 +116,7 @@ export default function RepassesPage() {
           <img className="right-bottom-img" src="/images/vector-img/right-bottom.png" alt="" />
           <img
             className="service-v1-vector bounce-y d-none d-xl-block"
-            src="/images/vector-img/vector-service.png"
+            src="/images/vector-img/repasse.png"
             style={{ maxWidth: "450px" }}
             alt=""
           />

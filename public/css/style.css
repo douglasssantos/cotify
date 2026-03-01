@@ -6765,6 +6765,20 @@ textarea {
   box-shadow: none;
 }
 
+.admin-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.admin-card-hover:hover {
+  transform: scale(1.03);
+}
+
+.assembly-card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.assembly-card-hover:hover {
+  transform: scale(1.02);
+}
+
 /*  Different Styles Of Animations  */
 .scale-infini {
   animation-name: myanimation;

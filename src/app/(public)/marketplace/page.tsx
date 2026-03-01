@@ -1,22 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { mockQuotas, Quota } from "@/data/mock-quotas";
-import { mockListings } from "@/data/mock-secondary-market";
+import { mockQuotas } from "@/data/mock-quotas";
 import QuotaListCard from "@/components/marketplace/QuotaListCard";
 import MarketplaceSidebar from "@/components/marketplace/MarketplaceSidebar";
 import MarketplaceSidebarModal from "@/components/marketplace/MarketplaceSidebarModal";
 import useMarketplaceStore from "@/store/marketplaceStore";
 import useToggleStore from "@/store/toggleStore";
-
-interface MarketplaceItem {
-  quota: Quota;
-  isRepasse: boolean;
-  sellerName?: string;
-  acceptsCounterOffer?: boolean;
-  acceptsFinancing?: boolean;
-}
 
 const tabCategories = [
   "Todas as Categorias",
@@ -24,7 +15,6 @@ const tabCategories = [
   "Veículos",
   "Serviços",
   "Contempladas",
-  "Repasses",
   "Ativas",
 ];
 
@@ -44,120 +34,50 @@ export default function MarketplacePage() {
   const [currentTab, setCurrentTab] = useState("Todas as Categorias");
   const [sortBy, setSortBy] = useState("relevancia");
   const [currentPage, setCurrentPage] = useState(1);
-  const [searchInput, setSearchInput] = useState("");
+  const [searchInput, setSearchInput] = useState(filters.search || "");
   const [sortOpen, setSortOpen] = useState(false);
 
-  const allItems: MarketplaceItem[] = useMemo(() => {
-    const items: MarketplaceItem[] = [];
-
-    mockQuotas.forEach((q) => {
-      const listing = mockListings.find(
-        (l) => l.quotaId === q.id && l.status === "ativo"
-      );
-      if (listing) {
-        items.push({
-          quota: { ...q, listingPrice: listing.askingPrice },
-          isRepasse: true,
-          sellerName: "Cotista Vendedor",
-          acceptsCounterOffer: listing.acceptsCounterOffer,
-          acceptsFinancing: listing.acceptsFinancing,
-        });
-      } else {
-        items.push({ quota: q, isRepasse: false });
-      }
-    });
-
-    mockListings
-      .filter(
-        (l) =>
-          l.status === "ativo" && !mockQuotas.find((q) => q.id === l.quotaId)
-      )
-      .forEach((l) => {
-        items.push({
-          quota: {
-            id: l.quotaId || l.id,
-            groupCode: l.groupCode,
-            goodType: l.goodType,
-            goodTypeLabel: l.goodTypeLabel,
-            creditValue: l.creditValue,
-            paidAmount: l.paidAmount,
-            installmentValue: l.installmentValue,
-            remainingInstallments: l.remainingInstallments,
-            totalInstallments: l.totalInstallments,
-            status: l.isContemplada ? "contemplada" : "ativa",
-            administradora: l.administradora,
-            adminFee: l.adminFee,
-            reserveFund: l.reserveFund,
-            quotaNumber: l.quotaNumber,
-            listingPrice: l.askingPrice,
-          },
-          isRepasse: true,
-          sellerName: "Cotista Vendedor",
-          acceptsCounterOffer: l.acceptsCounterOffer,
-          acceptsFinancing: l.acceptsFinancing,
-        });
-      });
-
-    return items;
-  }, []);
-
-  const filteredItems = allItems
-    .filter((item) => {
-      const q = item.quota;
+  const filteredItems = mockQuotas
+    .filter((q) => {
       if (currentTab === "Todas as Categorias") return true;
       if (currentTab === "Imóveis") return q.goodType === "imovel";
       if (currentTab === "Veículos") return q.goodType === "veiculo";
       if (currentTab === "Serviços") return q.goodType === "servico";
       if (currentTab === "Contempladas") return q.status === "contemplada";
-      if (currentTab === "Repasses") return item.isRepasse;
       if (currentTab === "Ativas") return q.status === "ativa";
       return true;
     })
-    .filter((item) =>
-      filters.goodType ? item.quota.goodType === filters.goodType : true
+    .filter((q) => (filters.goodType ? q.goodType === filters.goodType : true))
+    .filter((q) => (filters.status ? q.status === filters.status : true))
+    .filter((q) =>
+      filters.administradora ? q.administradora === filters.administradora : true
     )
-    .filter((item) =>
-      filters.status ? item.quota.status === filters.status : true
-    )
-    .filter((item) =>
-      filters.administradora
-        ? item.quota.administradora === filters.administradora
-        : true
-    )
-    .filter((item) => {
+    .filter((q) => {
       if (filters.priceRange.min === 0 && filters.priceRange.max === 1000000)
         return true;
       return (
-        item.quota.creditValue >= filters.priceRange.min &&
-        item.quota.creditValue <= filters.priceRange.max
+        q.creditValue >= filters.priceRange.min &&
+        q.creditValue <= filters.priceRange.max
       );
     })
-    .filter((item) =>
+    .filter((q) =>
       filters.search
-        ? item.quota.groupCode
-            .toLowerCase()
-            .includes(filters.search.toLowerCase()) ||
-          item.quota.administradora
-            .toLowerCase()
-            .includes(filters.search.toLowerCase()) ||
-          item.quota.goodTypeLabel
-            .toLowerCase()
-            .includes(filters.search.toLowerCase())
+        ? q.groupCode.toLowerCase().includes(filters.search.toLowerCase()) ||
+          q.administradora.toLowerCase().includes(filters.search.toLowerCase()) ||
+          q.goodTypeLabel.toLowerCase().includes(filters.search.toLowerCase())
         : true
     )
     .sort((a, b) => {
       if (sortBy === "menor-preco")
-        return (a.quota.listingPrice || 0) - (b.quota.listingPrice || 0);
+        return (a.listingPrice || 0) - (b.listingPrice || 0);
       if (sortBy === "maior-preco")
-        return (b.quota.listingPrice || 0) - (a.quota.listingPrice || 0);
-      if (sortBy === "maior-credito")
-        return b.quota.creditValue - a.quota.creditValue;
+        return (b.listingPrice || 0) - (a.listingPrice || 0);
+      if (sortBy === "maior-credito") return b.creditValue - a.creditValue;
       if (sortBy === "menos-parcelas")
-        return a.quota.remainingInstallments - b.quota.remainingInstallments;
+        return a.remainingInstallments - b.remainingInstallments;
       return 0;
     });
 
-  const repasseCount = allItems.filter((i) => i.isRepasse).length;
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const paginatedItems = filteredItems.slice(
     (currentPage - 1) * ITEMS_PER_PAGE,
@@ -174,33 +94,6 @@ export default function MarketplacePage() {
 
   return (
     <>
-      {/* TabSection1 */}
-      <section className="categories_list_section overflow-hidden">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="listings_category_nav_list_menu">
-                <ul className="mb0 d-flex ps-0">
-                  {tabCategories.map((item, i) => (
-                    <li key={i}>
-                      <a
-                        onClick={() => {
-                          setCurrentTab(item);
-                          setCurrentPage(1);
-                        }}
-                        className={currentTab === item ? "active" : ""}
-                        style={{ cursor: "pointer" }}
-                      >
-                        {item}
-                      </a>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
 
       {/* Breadcumb3 */}
       <section className="breadcumb-section">
@@ -246,40 +139,6 @@ export default function MarketplacePage() {
                     Encontre as melhores oportunidades de consórcio com total
                     segurança.
                   </p>
-                  <div className="d-flex gap-2 mb20 flex-wrap">
-                    <span
-                      className="text-white fz12 fw600 d-inline-flex align-items-center"
-                      style={{
-                        padding: "4px 14px",
-                        borderRadius: 20,
-                        backgroundColor: "#5bbb7b",
-                      }}
-                    >
-                      <i className="fas fa-certificate me-1" /> Mercado
-                      Primário
-                    </span>
-                    <span
-                      className="text-white fz12 fw600 d-inline-flex align-items-center"
-                      style={{
-                        padding: "4px 14px",
-                        borderRadius: 20,
-                        backgroundColor: "#6f42c1",
-                      }}
-                    >
-                      <i className="fas fa-exchange-alt me-1" />{" "}
-                      {repasseCount} Repasses Disponíveis
-                    </span>
-                    <span
-                      className="text-white fz12 fw600 d-inline-flex align-items-center"
-                      style={{
-                        padding: "4px 14px",
-                        borderRadius: 20,
-                        backgroundColor: "#0d6efd",
-                      }}
-                    >
-                      <i className="fas fa-shield-alt me-1" /> Escrow Seguro
-                    </span>
-                  </div>
                 </div>
                 <div className="advance-search-tab bgc-white p10 bdrs4 zi1 position-relative">
                   <div className="row">
@@ -340,14 +199,6 @@ export default function MarketplacePage() {
                     <p className="text mb-0 mb10-sm">
                       <span className="fw500">{filteredItems.length}</span>{" "}
                       cotas disponíveis
-                      {currentTab === "Repasses" && (
-                        <span
-                          className="fz12 ms-1"
-                          style={{ color: "#6f42c1" }}
-                        >
-                          (mercado secundário)
-                        </span>
-                      )}
                     </p>
                   </div>
                 </div>
@@ -428,15 +279,9 @@ export default function MarketplacePage() {
               {/* Content */}
               <div className="row">
                 {paginatedItems.length > 0 ? (
-                  paginatedItems.map((item) => (
-                    <div key={item.quota.id} className="col-md-6 col-lg-12">
-                      <QuotaListCard
-                        data={item.quota}
-                        isRepasse={item.isRepasse}
-                        sellerName={item.sellerName}
-                        acceptsCounterOffer={item.acceptsCounterOffer}
-                        acceptsFinancing={item.acceptsFinancing}
-                      />
+                  paginatedItems.map((q) => (
+                    <div key={q.id} className="col-md-6 col-lg-12">
+                      <QuotaListCard data={q} />
                     </div>
                   ))
                 ) : (

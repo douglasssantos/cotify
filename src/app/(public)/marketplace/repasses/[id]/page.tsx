@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { formatCurrency } from "@/lib/utils";
+import { CurrencyInput } from "@/components/ui/CurrencyInput";
 import {
   mockRepasses,
   getConditionLabel,
@@ -20,7 +21,7 @@ export default function RepasseDetailPage() {
   const [shareToggle, setShareToggle] = useState(false);
   const [saveToggle, setSaveToggle] = useState(false);
   const [activeTab, setActiveTab] = useState<"bem" | "fotos" | "credito" | "vendedor">("bem");
-  const [proposalValue, setProposalValue] = useState("");
+  const [proposalValue, setProposalValue] = useState(0);
   const [proposalMessage, setProposalMessage] = useState("");
   const [acceptTerms, setAcceptTerms] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -896,15 +897,13 @@ export default function RepasseDetailPage() {
                     </p>
                     <div className="row">
                       <div className="col-md-6 mb20">
-                        <label className="form-label fw500">Valor da Proposta</label>
-                        <input
-                          type="number"
-                          className="form-control"
-                          placeholder={`Valor pedido: ${formatCurrency(item.askingPrice)}`}
+                        <label className="form-label fw500 d-block mb-2">Valor da Proposta</label>
+                        <CurrencyInput
                           value={proposalValue}
-                          onChange={(e) => setProposalValue(e.target.value)}
+                          onValueChange={setProposalValue}
+                          placeholder={`Valor pedido: ${formatCurrency(item.askingPrice)}`}
                         />
-                        {proposalValue && Number(proposalValue) < item.askingPrice && (
+                        {proposalValue > 0 && proposalValue < item.askingPrice && (
                           <small style={{ color: "#f0ad4e" }}>
                             <i className="fas fa-info-circle me-1" />
                             Abaixo do valor pedido de {formatCurrency(item.askingPrice)}

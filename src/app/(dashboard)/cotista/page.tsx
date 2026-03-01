@@ -1,15 +1,40 @@
 "use client";
 
 import StatCard from "@/components/ui/StatCard";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, getStatusLabel } from "@/lib/utils";
 import Link from "next/link";
+import { mockQuotas } from "@/data/mock-quotas";
+import { mockMyPayments } from "@/data/mock-cotista";
+import { mockProposals } from "@/data/mock-secondary-market";
+import { mockTransfers } from "@/data/mock-secondary-market";
+import { mockListings } from "@/data/mock-secondary-market";
 
-const recentPayments = [
-  { date: "15/02/2026", group: "GRP-4052", value: 2450, status: "Pago" },
-  { date: "15/01/2026", group: "GRP-4052", value: 2450, status: "Pago" },
-  { date: "15/12/2025", group: "GRP-4052", value: 2450, status: "Pago" },
-  { date: "15/11/2025", group: "GRP-4052", value: 2450, status: "Pago" },
-];
+const myQuotas = mockQuotas.slice(0, 5);
+const totalInvestido = mockMyPayments
+  .filter((p) => p.status === "pago")
+  .reduce((s, p) => s + p.value, 0);
+const creditTotal = myQuotas.reduce((s, q) => s + q.creditValue, 0);
+const contempladasCount = myQuotas.filter((q) => q.status === "contemplada").length;
+const proximaParcela = mockMyPayments.find(
+  (p) => p.status === "agendado" || p.status === "pendente"
+);
+const recentPayments = mockMyPayments
+  .filter((p) => p.status === "pago")
+  .slice(0, 4)
+  .map((p) => ({
+    date: new Date(p.date).toLocaleDateString("pt-BR"),
+    group: p.groupCode,
+    value: p.value,
+    status: "Pago",
+  }));
+
+const propostasPendentes = mockProposals.filter(
+  (pr) => pr.type === "recebida" && pr.status === "pendente"
+).length;
+const repassesEmAndamento = mockTransfers.filter(
+  (t) => !["concluido", "cancelado", "reprovado"].includes(t.status)
+).length;
+const anunciosAtivos = mockListings.filter((l) => l.status === "ativo").length;
 
 export default function CotistaDashboard() {
   return (
@@ -28,32 +53,40 @@ export default function CotistaDashboard() {
         <div className="col-sm-6 col-xxl-3">
           <StatCard
             title="Cotas Ativas"
-            value="2"
-            subtitle="1 contemplada"
+            value={String(myQuotas.length)}
+            subtitle={contempladasCount > 0 ? `${contempladasCount} contemplada(s)` : undefined}
             icon="flaticon-document"
           />
         </div>
         <div className="col-sm-6 col-xxl-3">
           <StatCard
             title="Total Investido"
-            value="R$ 130.000"
-            subtitle="+R$ 2.450 este mês"
+            value={formatCurrency(totalInvestido)}
+            subtitle={
+              recentPayments.length > 0
+                ? `+${formatCurrency(recentPayments[0]?.value ?? 0)} este mês`
+                : undefined
+            }
             icon="flaticon-dollar"
           />
         </div>
         <div className="col-sm-6 col-xxl-3">
           <StatCard
             title="Crédito Total"
-            value="R$ 435.000"
-            subtitle="2 grupos"
+            value={formatCurrency(creditTotal)}
+            subtitle={myQuotas.length > 0 ? `${myQuotas.length} cota(s)` : undefined}
             icon="flaticon-contract"
           />
         </div>
         <div className="col-sm-6 col-xxl-3">
           <StatCard
             title="Próxima Parcela"
-            value="R$ 2.450"
-            subtitle="Vence em 15/03"
+            value={proximaParcela ? formatCurrency(proximaParcela.value) : "—"}
+            subtitle={
+              proximaParcela
+                ? `Vence em ${new Date(proximaParcela.date).toLocaleDateString("pt-BR")}`
+                : undefined
+            }
             icon="flaticon-calendar"
           />
         </div>
@@ -71,22 +104,27 @@ export default function CotistaDashboard() {
               </Link>
             </div>
             <div className="dashboard-img-service">
-              <div className="d-flex align-items-center justify-content-between bdrb1 pb15 mb15">
-                <div>
-                  <h6 className="mb5">Grupo GRP-4052 - Cota #12</h6>
-                  <p className="fz13 body-color mb-0">Imóvel • Embracon</p>
+              {myQuotas.slice(0, 3).map((quota) => (
+                <div
+                  key={quota.id}
+                  className="d-flex align-items-center justify-content-between bdrb1 pb15 mb15"
+                >
+                  <div>
+                    <h6 className="mb5">
+                      {quota.groupCode} - Cota #{quota.quotaNumber}
+                    </h6>
+                    <p className="fz13 body-color mb-0">
+                      {quota.goodTypeLabel} • {quota.administradora}
+                    </p>
+                  </div>
+                  <span className={`quota-status-badge ${quota.status}`}>
+                    {getStatusLabel(quota.status)}
+                  </span>
                 </div>
-                <span className="quota-status-badge ativa">Ativa</span>
-              </div>
-              <div className="d-flex align-items-center justify-content-between">
-                <div>
-                  <h6 className="mb5">Grupo GRP-3187 - Cota #45</h6>
-                  <p className="fz13 body-color mb-0">Veículo • Porto Seguro</p>
-                </div>
-                <span className="quota-status-badge contemplada">
-                  Contemplada
-                </span>
-              </div>
+              ))}
+              {myQuotas.length === 0 && (
+                <p className="body-color fz14 mb-0">Nenhuma cota. <Link href="/marketplace" className="text-thm">Ver marketplace</Link>.</p>
+              )}
             </div>
           </div>
         </div>
@@ -102,27 +140,31 @@ export default function CotistaDashboard() {
               </Link>
             </div>
             <div>
-              {recentPayments.map((payment, i) => (
-                <div
-                  key={i}
-                  className={`d-flex justify-content-between align-items-center ${
-                    i < recentPayments.length - 1 ? "bdrb1 pb10 mb10" : ""
-                  }`}
-                >
-                  <div>
-                    <p className="fz14 mb-0 dark-color">{payment.date}</p>
-                    <p className="fz12 body-color mb-0">{payment.group}</p>
+              {recentPayments.length > 0 ? (
+                recentPayments.map((payment, i) => (
+                  <div
+                    key={i}
+                    className={`d-flex justify-content-between align-items-center ${
+                      i < recentPayments.length - 1 ? "bdrb1 pb10 mb10" : ""
+                    }`}
+                  >
+                    <div>
+                      <p className="fz14 mb-0 dark-color">{payment.date}</p>
+                      <p className="fz12 body-color mb-0">{payment.group}</p>
+                    </div>
+                    <div className="text-end">
+                      <p className="fz14 fw500 mb-0 dark-color">
+                        {formatCurrency(payment.value)}
+                      </p>
+                      <span className="fz12" style={{ color: "#5bbb7b" }}>
+                        {payment.status}
+                      </span>
+                    </div>
                   </div>
-                  <div className="text-end">
-                    <p className="fz14 fw500 mb-0 dark-color">
-                      {formatCurrency(payment.value)}
-                    </p>
-                    <span className="fz12" style={{ color: "#5bbb7b" }}>
-                      {payment.status}
-                    </span>
-                  </div>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="body-color fz14 mb-0">Nenhum pagamento recente.</p>
+              )}
             </div>
           </div>
         </div>
@@ -162,7 +204,7 @@ export default function CotistaDashboard() {
                     <i className="flaticon-shop fz18" style={{ color: "#0d6efd" }} />
                   </div>
                   <h6 className="fz14 mb-0">Meus Anúncios</h6>
-                  <span className="fz12 body-light-color">2 ativos</span>
+                  <span className="fz12 body-light-color">{anunciosAtivos} ativo(s)</span>
                 </Link>
               </div>
               <div className="col-md-3 col-sm-6 mb15">
@@ -174,7 +216,7 @@ export default function CotistaDashboard() {
                     <i className="flaticon-chat fz18" style={{ color: "#f0ad4e" }} />
                   </div>
                   <h6 className="fz14 mb-0">Propostas</h6>
-                  <span className="fz12 body-light-color">2 pendentes</span>
+                  <span className="fz12 body-light-color">{propostasPendentes} pendente(s)</span>
                 </Link>
               </div>
               <div className="col-md-3 col-sm-6 mb15">
@@ -186,7 +228,7 @@ export default function CotistaDashboard() {
                     <i className="flaticon-transfer fz18" style={{ color: "#6f42c1" }} />
                   </div>
                   <h6 className="fz14 mb-0">Repasses</h6>
-                  <span className="fz12 body-light-color">1 em andamento</span>
+                  <span className="fz12 body-light-color">{repassesEmAndamento} em andamento</span>
                 </Link>
               </div>
             </div>

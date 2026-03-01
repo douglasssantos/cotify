@@ -48,7 +48,7 @@ export default function GroupDetailPage() {
   return (
     <>
       {/* TabSection1 */}
-      <section className="categories_list_section overflow-hidden">
+      {/* <section className="categories_list_section overflow-hidden">
         <div className="container">
           <div className="row">
             <div className="col-lg-12">
@@ -62,7 +62,7 @@ export default function GroupDetailPage() {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       {/* Breadcumb10 */}
       <section className="breadcumb-section">
@@ -476,8 +476,25 @@ export default function GroupDetailPage() {
                           </div>
                         </>
                       )}
-                      <div className="d-grid mt30">
-                        <Link href="/marketplace/grupos" className="ud-btn btn-thm-border">
+                      <div className="d-grid gap-2 mt30">
+                        <Link
+                          href={`/marketplace/grupos/${group.id}/cotas`}
+                          className="ud-btn btn-thm"
+                        >
+                          Ver Cotas Disponíveis
+                          <i className="fal fa-arrow-right-long" />
+                        </Link>
+                        <Link
+                          href={`/marketplace/administradoras/${group.administradora.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, "-")}`}
+                          className="ud-btn btn-light-thm"
+                        >
+                          Ver {group.administradora}
+                          <i className="fal fa-arrow-right-long" />
+                        </Link>
+                        <Link
+                          href="/marketplace/grupos"
+                          className="ud-btn btn-thm-border"
+                        >
                           Ver Outros Grupos
                           <i className="fal fa-arrow-right-long" />
                         </Link>

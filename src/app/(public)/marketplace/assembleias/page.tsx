@@ -9,6 +9,11 @@ import {
   getWinnerTypeLabel,
 } from "@/data/mock-groups";
 import { formatCurrency } from "@/lib/utils";
+import { BiUser, BiUserCheck } from "react-icons/bi";
+import { HiOutlineCalendarDays } from "react-icons/hi2";
+import { LiaKeySolid } from "react-icons/lia";
+import { TbCalendarCheck } from "react-icons/tb";
+import { PiCalendarCheckLight, PiUserCheck, PiUsersThreeLight } from "react-icons/pi";
 
 interface AssemblyWithGroup extends Assembly {
   groupId: string;
@@ -37,11 +42,7 @@ function getAllAssemblies(): AssemblyWithGroup[] {
   );
 }
 
-const tabFilters = [
-  "Todas",
-  "Realizadas",
-  "Agendadas",
-];
+const tabFilters = ["Todas", "Realizadas", "Agendadas"];
 
 export default function AssembliesPage() {
   const [currentTab, setCurrentTab] = useState("Todas");
@@ -62,23 +63,6 @@ export default function AssembliesPage() {
 
   return (
     <>
-      {/* TabSection1 */}
-      <section className="categories_list_section overflow-hidden">
-        <div className="container">
-          <div className="row">
-            <div className="col-lg-12">
-              <div className="listings_category_nav_list_menu">
-                <ul className="mb0 d-flex ps-0">
-                  <li><Link href="/marketplace">Cotas</Link></li>
-                  <li><Link href="/marketplace/grupos">Grupos</Link></li>
-                  <li><a className="active" style={{ cursor: "pointer" }}>Assembleias</a></li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* Breadcumb3 */}
       <section className="breadcumb-section">
         <div className="container">
@@ -96,12 +80,17 @@ export default function AssembliesPage() {
         </div>
       </section>
 
-      {/* Banner */}
+      {/* Banner - igual ao original */}
       <section className="breadcumb-section pt-0">
         <div className="cta-service-v1 cta-banner mx-auto maxw1700 pt120 pb120 bdrs16 position-relative overflow-hidden d-flex align-items-center mx20-lg px30-lg">
           <img className="left-top-img" src="/images/vector-img/left-top.png" alt="" />
           <img className="right-bottom-img" src="/images/vector-img/right-bottom.png" alt="" />
-          <img className="service-v1-vector bounce-y d-none d-xl-block" src="/images/vector-img/vector-service-v1.png" alt="" />
+          <img
+            className="service-v1-vector bounce-y d-none d-xl-block"
+            style={{ maxWidth: "480px" }}
+            src="/images/vector-img/assembleia.png"
+            alt=""
+          />
           <div className="container">
             <div className="row">
               <div className="col-xl-7">
@@ -117,31 +106,53 @@ export default function AssembliesPage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="our-partners hover-bgc-color pt50 pb30 maxw1700 mx-auto bdrs30">
+      <section className="pt50 pb20">
         <div className="container">
-          <div className="row justify-content-center">
-            {[
-              { value: allAssemblies.length.toString(), label: "Total de Assembleias" },
-              { value: realizadasCount.toString(), label: "Realizadas" },
-              { value: agendadasCount.toString(), label: "Agendadas" },
-              { value: totalContemplados.toString(), label: "Contemplados" },
-            ].map((stat, i) => (
-              <div key={i} className="col-6 col-md-3">
-                <div className="partner_item text-center mb30-lg">
-                  <h3 className="fw700 text-thm2 mb5">{stat.value}</h3>
-                  <p className="body-color fz14 mb-0">{stat.label}</p>
+          <div className="row">
+            <div className="col-6 col-md-3 mb30">
+              <div className="iconbox-style1 contact-style text-center bdr1 p25 bdrs8 h-100">
+                <div className="icon flex-shrink-0 mb25">
+                  <PiUsersThreeLight className="fz50"/>
                 </div>
+                <h3 className="fw700 dark-color mb5">{allAssemblies.length}</h3>
+                <p className="mb-0 text fz14">Total de Assembleias</p>
               </div>
-            ))}
+            </div>
+            <div className="col-6 col-md-3 mb30">
+              <div className="iconbox-style1 contact-style text-center bdr1 p25 bdrs8 h-100">
+                <div className="icon flex-shrink-0 mb15">
+                  <PiCalendarCheckLight className="fz50"/>
+                  {/* <span className="flaticon-like-1 fz40" /> */}
+                </div>
+                <h3 className="fw700 dark-color mb5">{realizadasCount}</h3>
+                <p className="mb-0 text fz14">Realizadas</p>
+              </div>
+            </div>
+            <div className="col-6 col-md-3 mb30">
+              <div className="iconbox-style1 contact-style text-center bdr1 p25 bdrs8 h-100">
+                <div className="icon flex-shrink-0 mb15">
+                  <HiOutlineCalendarDays className="fz50"/>
+                </div>
+                <h3 className="fw700 dark-color mb5">{agendadasCount}</h3>
+                <p className="mb-0 text fz14">Agendadas / Em andamento</p>
+              </div>
+            </div>
+            <div className="col-6 col-md-3 mb30">
+              <div className="iconbox-style1 contact-style text-center bdr1 p25 bdrs8 h-100">
+                <div className="icon flex-shrink-0 mb15">
+                  <PiUserCheck className="fz50"/>
+                </div>
+                <h3 className="fw700 dark-color mb5">{totalContemplados}</h3>
+                <p className="mb-0 text fz14">Contemplados</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Listing */}
-      <section className="pt30 pb90">
+      {/* Listing - filtros e cards em lista */}
+      <section className="pt0 pb90">
         <div className="container">
-          {/* Filter Tabs */}
           <div className="row align-items-center mb20">
             <div className="col-md-6">
               <div className="navpill-style2 at-home9">
@@ -149,6 +160,7 @@ export default function AssembliesPage() {
                   {tabFilters.map((item, i) => (
                     <li key={i} className="nav-item">
                       <button
+                        type="button"
                         onClick={() => setCurrentTab(item)}
                         className={`nav-link fw500 dark-color ${currentTab === item ? "active" : ""}`}
                       >
@@ -168,7 +180,6 @@ export default function AssembliesPage() {
             </div>
           </div>
 
-          {/* Cards */}
           <div className="row">
             {filteredAssemblies.length > 0 ? (
               filteredAssemblies.map((assembly) => (
@@ -183,7 +194,13 @@ export default function AssembliesPage() {
                             }`}
                             style={{ width: 60, height: 60 }}
                           >
-                            <span className={`fw700 fz18 ${assembly.status === "realizada" ? "text-white" : "dark-color"}`}>
+                            <span
+                              className={`fw700 fz18 ${
+                                assembly.status === "realizada"
+                                  ? "text-white"
+                                  : "dark-color"
+                              }`}
+                            >
                               {assembly.number}ª
                             </span>
                           </div>
@@ -205,15 +222,23 @@ export default function AssembliesPage() {
                             {assembly.totalParticipants} participantes
                           </p>
                           <div className="skill-tags d-flex align-items-center justify-content-start mt10">
-                            <span className={`tag ${assembly.status === "realizada" ? "" : "style2"}`}>
+                            <span
+                              className={`tag ${
+                                assembly.status === "realizada" ? "" : "style2"
+                              }`}
+                            >
                               {getAssemblyStatusLabel(assembly.status)}
                             </span>
                             <span className="tag mx10">{assembly.goodTypeLabel}</span>
                             {assembly.winnerType && (
-                              <span className="tag">{getWinnerTypeLabel(assembly.winnerType)}</span>
+                              <span className="tag">
+                                {getWinnerTypeLabel(assembly.winnerType)}
+                              </span>
                             )}
                             {assembly.winnerQuota && (
-                              <span className="tag mx10 text-thm">{assembly.winnerQuota}</span>
+                              <span className="tag mx10 text-thm">
+                                {assembly.winnerQuota}
+                              </span>
                             )}
                           </div>
                         </div>
@@ -225,7 +250,7 @@ export default function AssembliesPage() {
                           <>
                             <p className="mb-0 fz14 body-color">Contemplados</p>
                             <h4 className="mb-0">{assembly.contemplatedCount}</h4>
-                            {assembly.winnerBidValue && (
+                            {assembly.winnerBidValue != null && (
                               <p className="fz13 text-thm mb-0">
                                 Lance: {assembly.winnerBidValue}%
                               </p>
@@ -234,7 +259,9 @@ export default function AssembliesPage() {
                         ) : (
                           <>
                             <p className="mb-0 fz14 body-color">Crédito</p>
-                            <h5 className="mb-0">{formatCurrency(assembly.groupCreditValue)}</h5>
+                            <h5 className="mb-0">
+                              {formatCurrency(assembly.groupCreditValue)}
+                            </h5>
                           </>
                         )}
                       </div>
@@ -257,7 +284,10 @@ export default function AssembliesPage() {
               ))
             ) : (
               <div className="col-12 text-center py-5">
-                <i className="flaticon-loupe" style={{ fontSize: 64, color: "#ccc" }} />
+                <i
+                  className="flaticon-loupe"
+                  style={{ fontSize: 64, color: "#ccc" }}
+                />
                 <h4 className="mt20">Nenhuma assembleia encontrada</h4>
                 <p className="body-color">Tente outro filtro.</p>
               </div>
